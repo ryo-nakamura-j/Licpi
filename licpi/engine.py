@@ -39,7 +39,7 @@ class Value:
         out =  Value(self.data ** other, (self,), f"**{other}")
 
         def _backward():
-            self.grad = (other * self.data * (other-1)) * out.grad
+            self.grad += (other * self.data ** (other-1)) * out.grad
         out._backward = _backward
         return out
 
@@ -57,11 +57,24 @@ class Value:
 
         out._backward = _backward
         return out
-
     def tanh(self):
-        num = self.exp() - ((-self).exp())
-        den = self.exp() + ((-self).exp())
-        out = num / den
+        x = self.data 
+        t = (math.exp(2*x) - 1) / (math.exp(2*x) + 1)
+        out = Value(t, (self, ), "tanh")
+
+        def _backward():
+            self.grad += (1 - t**2) * out.grad
+        out._backward = _backward
+        return out
+
+    def relu(self):
+        out = Value(0 if self.data < 0 else self.data, (self,), 'ReLU')
+
+        def _backward():
+            self.grad += (out.data > 0) * out.grad
+        out._backward = _backward
+
+        return out
     
     def backward(self):
         topo = []
@@ -82,13 +95,9 @@ class Value:
             node._backward()
 
     def __radd__(self, other): # other + self
-        print(self, f"{self} + {other}")
-        print(other, "other")
         return self + other
 
     def __rsub__(self, other): # other - self
-        print(self, "self")
-        print(other, "other")
         return other + (-self)
 
     def __rmul__(self, other): # other * self
