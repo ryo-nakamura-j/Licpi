@@ -1,11 +1,12 @@
-# licpi
+# Licpi
 
-licpi is a light customizable pytorch-inspired framework
+Licpi is a light customizable pytorch-inspired framework
 
-If you are familiar with the implementation of pytorch library, 
-You might be grateful for we can derive all the partial derivatives by just calling a function on the loss function.
+If you're familiar with PyTorch, you'll appreciate how we can derive all the partial derivatives by just calling a function on the loss function.
 
-Likewise, you can implement neural network with scalar values with autograd functionarity as follows.
+Example: 
+
+Easily build neural networks with scalar values and automatic differentiation. This example demonstrates both data (left number in each node) and gradients (right number in each node):
 
 ```python
 from micrograd import nn
@@ -26,3 +27,8 @@ dot = draw_dot(y)
 
 
 ![dag](https://github.com/user-attachments/assets/8d612c7d-0a1d-4fad-af11-384d7ca023fa)
+
+
+This repository is built by referring to [micrograd](https://github.com/karpathy/micrograd/), from [Andrej Karpathy](https://karpathy.ai/), 
+
+I highly recommend his remarkable [tutorial](https://www.youtube.com/watch?v=VMj-3S1tku0&list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ&index=1) to those who aspire to learn deep learning.
