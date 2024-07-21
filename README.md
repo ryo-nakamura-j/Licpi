@@ -1,6 +1,6 @@
 # Licpi
 
-Licpi is a light customizable pytorch-inspired framework
+Licpi is a Light-weight Customizable Pytorch-Inspired Framework.
 
 If you're familiar with PyTorch, you'll appreciate how we can derive all the partial derivatives by just calling a function on the loss function.
 
@@ -9,7 +9,7 @@ Example:
 Easily build neural networks with scalar values and automatic differentiation. This example demonstrates both data (left number in each node) and gradients (right number in each node):
 
 ```python
-from micrograd import nn
+from licpi import nn
 n = nn.Neuron(2)
 X = [
     [3.0, 1.0],
