@@ -1,10 +1,12 @@
 # Licpi
 
-Licpi is a Light-weight Customizable Pytorch-Inspired Framework.
+Licpi is a <em>**Light-weight Customizable Pytorch-Inspired Framework.**</em>
 
 If you're familiar with PyTorch, you'll appreciate how we can derive all the partial derivatives by just calling a function on the loss function.
 
-Example: 
+---
+
+<h3>Example</h3>
 
 Easily build neural networks with scalar values and automatic differentiation. This example demonstrates both data (left number in each node) and gradients (right number in each node):
 
@@ -25,9 +27,8 @@ loss.backward()
 dot = draw_dot(y)
 ```
 
-
-![dag](https://github.com/user-attachments/assets/8d612c7d-0a1d-4fad-af11-384d7ca023fa)
-
+![DAG](https://github.com/user-attachments/assets/a32586d8-2846-49b5-9897-52f2e423db4e)
+> *The image is a segment of a Directed Acyclic Graph (DAG). It displays data and partial derivatives of the gradient in rectangular nodes, computations in oval nodes, and each edge indicates which pair of data and partial derivative was fed into the computation.
 
 This repository is built by referring to [micrograd](https://github.com/karpathy/micrograd/), from [Andrej Karpathy](https://karpathy.ai/), 
 
