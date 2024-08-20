@@ -1,6 +1,6 @@
 from typing import Any, Tuple, Union
 import numpy
-from engine import Value
+from engine import Value, Tensor
 
 class Op:
     def __call__(self, *args):
@@ -52,6 +52,10 @@ class Op:
 
 class TensorOp(Op):
     """ Op class specialized to output tensors, will be alternate subclasses for other structures"""
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
+    def __call__(self, *args):
+        return Tensor.make_from_op(self,args)
+
+
+
 
         
