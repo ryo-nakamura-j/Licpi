@@ -1,5 +1,5 @@
 from typing import Optional, List
-from op import Op
+from .op import Op
 from .backend_numpy import Device, cpu, all_devices
 import numpy
 
@@ -10,6 +10,9 @@ TENSOR_COUNTER = 0
 # NOTE: we will import numpy as the array_api
 # as the backend for our computations, this line will change in later homeworks
 import numpy as array_api
+
+NDArray = numpy.ndarray
+
 class Value:
     """A value in the computational graph."""
 
@@ -35,16 +38,13 @@ class Value:
     def _init(self, op: Optional[Op], inputs: List["Value"], num_outputs: int = 1, cached_data: List[object] = None, requires_grad: Optional[bool]= None):
         global TENSOR_COUNTER
         TENSOR_COUNTER += 1
-        if required_grad is None:
-            required_grad = any(x.requires_grad for x in inputs)
+        if requires_grad is None:
+            requires_grad = any(x.requires_grad for x in inputs)
         self.op = op
         self.inputs =inputs 
         self.num_outputs = num_outputs 
         self.cached_data = cached_data 
         self.requires_grad = requires_grad 
-
-    def __repr__(self) -> str:
-        return f"Value(data={self.data})"
 
     def __add__(self, other):
         other = other if isinstance(other, Value) else Value(other)

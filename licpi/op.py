@@ -1,6 +1,9 @@
 from typing import Any, Tuple, Union
 import numpy
-from engine import Value, Tensor
+import numpy as array_api
+
+NDArray = numpy.ndarray
+
 
 class Op:
     def __call__(self, *args):
