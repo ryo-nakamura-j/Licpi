@@ -1,5 +1,5 @@
-from typing import Optional, List
-from .op import Op
+import licpi
+from typing import Optional, List, Any, Tuple, Union
 from .backend_numpy import Device, cpu, all_devices
 import numpy
 
@@ -12,6 +12,61 @@ TENSOR_COUNTER = 0
 import numpy as array_api
 
 NDArray = numpy.ndarray
+
+
+class Op:
+    def __call__(self, *args):
+        raise ModuleNotFoundError()
+        
+    def compute(self, *args: Tuple[NDArray]):
+        '''Calculate forward pass of operator
+        
+        Parameters
+        ----------
+        input: np.ndarray
+            A list of input arrays to the function
+            
+        Returns
+        -------
+        output: nd.array
+            Array output of the operation
+            
+        '''
+        raise NotImplementedError()
+        
+    def gradient(self, out_grad: "Value", node: "Value") -> Union["Value", Tuple["Value"]]:
+        """compute partial adjoing for each input value for a given output adjoint.
+
+        Parameters
+        ----------
+        out_grad: Value
+            The adjoint wrt to the output value.
+
+        node: Value
+            The value node of forward evaluation.
+
+        Returns
+        ------
+        input_grads: Value or Tuple[Value]
+            A list containing partial gradient adjoints to be propagated to each of the input node.
+        """
+        raise NotImplementedError()
+
+    def gradient_as_tuple(self, out_grad: "Value", node: "Value") ->Tuple["Value"]:
+        """ Convenience method to always return a tuple from gradient call"""
+        output = self.gradient(out_grad, node)
+        if isinstance(output, tuple):
+            return output
+        elif isinstance(output, list):
+            return tuple(output)
+        else:
+            return (output,)
+
+class TensorOp(Op):
+    """ Op class specialized to output tensors, will be alternate subclasses for other structures"""
+    def __call__(self, *args):
+        return Tensor.make_from_op(self,args)
+
 
 class Value:
     """A value in the computational graph."""
@@ -31,11 +86,11 @@ class Value:
             return self.cached_data
         # note: data implicitly calls realized cached data
         self.cached_data = self.op.compute(
-            *[x.realize_cached_data for x in self.inputs]
+            *[x.realize_cached_data() for x in self.inputs]
         )
         return self.cached_data
 
-    def _init(self, op: Optional[Op], inputs: List["Value"], num_outputs: int = 1, cached_data: List[object] = None, requires_grad: Optional[bool]= None):
+    def _init(self, op: Optional[Op], inputs: List["Value"], *, num_outputs: int = 1, cached_data: List[object] = None, requires_grad: Optional[bool]= None):
         global TENSOR_COUNTER
         TENSOR_COUNTER += 1
         if requires_grad is None:
@@ -46,16 +101,12 @@ class Value:
         self.cached_data = cached_data 
         self.requires_grad = requires_grad 
 
-    def __add__(self, other):
-        other = other if isinstance(other, Value) else Value(other)
-        out = Value(self.data + other.data, (self, other), _op="+")
+    def __repr__(self):
+        return "licpi.Tensor(" + str(self.realize_cached_data()) + ")"
 
-        def _backward():
-            self.grad += 1.0 * out.grad
-            other.grad += 1.0 * out.grad
+    def __str__(self):
+        return self.realize_cached_data().__str__()
 
-        out._backward = _backward
-        return out
     
     def __sub__(self, other):
         return self + (-other)
@@ -177,6 +228,13 @@ class Tensor(Value):
     @staticmethod
     def make_from_op(op: Op, inputs: List["Value"]):
         tensor = Tensor.__new__(Tensor)
-        tensor = tensor.__init__(op, inputs)
+        tensor._init(op, inputs)
         tensor.realize_cached_data()
         return tensor
+    
+    def __add__(self, other):
+        if isinstance(other, Tensor):
+            return licpi.ops.EWiseAdd()(self, other)
+        else:
+            return licpi.ops.AddScalar(other)(self)
+
