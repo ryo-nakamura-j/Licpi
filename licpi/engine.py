@@ -3,6 +3,8 @@ from typing import Optional, List, Any, Tuple, Union
 from .backend_numpy import Device, cpu, all_devices
 import numpy
 
+from licpi import init
+
 # needle version
 LAZY_MODE = True
 TENSOR_COUNTER = 0
@@ -108,9 +110,6 @@ class Value:
         return self.realize_cached_data().__str__()
 
     
-    def __sub__(self, other):
-        return self + (-other)
-
     def __mul__(self, other):
         other = other if isinstance(other, Value) else Value(other)
         out = Value(self.data * other.data, (self, other), _op="*")
@@ -232,9 +231,62 @@ class Tensor(Value):
         tensor.realize_cached_data()
         return tensor
     
+    def backward(self, out_grad=None):
+        out_grad = (
+            out_grad
+            if out_grad
+            else init.ones(*self.shape, dtype=self.dtype, device=self.device)
+        )
+    
     def __add__(self, other):
         if isinstance(other, Tensor):
             return licpi.ops.EWiseAdd()(self, other)
         else:
             return licpi.ops.AddScalar(other)(self)
 
+    def __sub__(self, other):
+        if isinstance(other, Tensor):
+            return licpi.ops.EWiseAdd()(self, licpi.ops.Negate()(other))
+        else:
+            return licpi.ops.AddScalar(-other)(self)
+
+def compute_gradient_of_variables(output_tensor, out_grad):
+    """Take gradient of output node with respect to each node in node_list.
+
+    Store the computed result in the grad fielf of each variable. 
+    """
+
+    # a map from node to a list of gradient contributions from each output node
+    node_to_output_grads_list: Dist[Tensor, List[Tensor]] = {}
+    
+    node_to_output_grads_list[output_tensor] = [out_grad]
+
+    reverse_topo_order = list(reversed(find_topo_sort([output_tensor])))
+
+    for node in reverse_topo_order:
+        ajoint = node_to_output_grads_list[node]
+        node.grad = ajoint
+        if node.op is None:
+            continue
+        partial_ajoints = node.op.gradient_as_tuple(ajoint, node)
+        for in_node, partial_ajoint in zip(node.inputs, partial_ajoints):
+            if in_node not in node_to_output_grads_list:
+                node_to_output_grads_list[in_node] = []
+            node_to_output_grads_list[in_node].append(partial_ajoint)
+
+
+def find_topo_sort(node_list: List[Value]) -> List[Value]:
+    visited = []
+    topo_order = []
+
+    for node in node_list:
+        topo_sort_dfs(node, visited, topo_order)
+    return topo_order
+
+def topo_sort_dfs(node: Value, visited: List[Value], topo_order : List[Value]):
+    if node not in visited:
+        visited.append(node)
+        for input in node.inputs:
+            topo_sort_dfs(input, visited, topo_order)
+        topo_order.append(node)
+        
