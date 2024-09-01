@@ -5,7 +5,7 @@ import numpy
 
 from licpi import init
 
-# needle version
+# licpi version
 LAZY_MODE = True
 TENSOR_COUNTER = 0
 
@@ -249,6 +249,50 @@ class Tensor(Value):
             return licpi.ops.EWiseAdd()(self, licpi.ops.Negate()(other))
         else:
             return licpi.ops.AddScalar(-other)(self)
+
+    def __mul__(self, other):
+        if isinstance(other, Tensor):
+            return licpi.ops.EWiseMul()(self, other)
+        else:
+            return licpi.ops.MulScalar(other)(self)
+
+    def __pow__(self, other):
+        if isinstance(other, Tensor):
+            return licpi.ops.EWisePow()(self, other)
+        else: 
+            return licpi.ops.PowerScalar(other)(self)
+
+    def __truediv__(self, other):
+        if isinstance(other, Tensor):
+            return licpi.ops.EWiseDiv()(self, other)
+        else:
+            return licpi.ops.DivScalar(other)(self)
+
+    def __matmul__(self, other):
+        return licpi.ops.MatMul()(self, other)
+
+    def matmul(self, other):
+        return licpi.ops.MatMul()(self, other)
+
+    def sum(self, axes=None):
+        return licpi.ops.Summation(axes)(self)
+
+    def broadcast_to(self, shape):
+        return licpi.ops.BroadcastTo(shape)(self)
+
+    def reshape(self, shape):
+        return licpi.ops.Reshape(shape)(self)
+
+    def __neg__(self):
+        return licpi.ops.Negate()(self)
+
+    def transpose(self, axes=None):
+        return licpi.ops.Transpose(axes)(self)
+
+    __radd__ = __add__
+    __rmul__ = __mul__
+    __rsub__ = __sub__
+    __rmatmul__ = __matmul__
 
 def compute_gradient_of_variables(output_tensor, out_grad):
     """Take gradient of output node with respect to each node in node_list.
