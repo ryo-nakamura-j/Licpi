@@ -11,6 +11,27 @@ def parse_mnist_to_images(file_read):
         return images
 
 def parse_mnist(image_filesname, label_filename):
+    """Read an images and labels file in MNIST format.  See this page:
+    http://yann.lecun.com/exdb/mnist/ for a description of the file format.
+
+    Args:
+        image_filename (str): name of gzipped images file in MNIST format
+        label_filename (str): name of gzipped labels file in MNIST format
+
+    Returns:
+        Tuple (X,y):
+            X (numpy.ndarray[np.float32]): 2D numpy array containing the loaded
+                data.  The dimensionality of the data should be
+                (num_examples x input_dim) where 'input_dim' is the full
+                dimension of the data, e.g., since MNIST images are 28x28, it
+                will be 784.  Values should be of type np.float32, and the data
+                should be normalized to have a minimum value of 0.0 and a
+                maximum value of 1.0.
+
+            y (numpy.ndarray[dypte=np.int8]): 1D numpy array containing the
+                labels of the examples.  Values should be of type np.int8 and
+                for MNIST will contain the values 0-9.
+    """
     with gzip.open(image_filesname, "rb") as img_file:
         magic_num, img_num, row, col = struct.unpack(">4i", img_file.read(16))
         assert(magic_num == 2051)
